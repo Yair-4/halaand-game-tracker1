@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Haaland",
+  "short_name": "Haaland",
+  "description": "Erling Haaland's upcoming and recent Manchester City and Norway games in your local time.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf2ef",
+  "theme_color": "#111513",
+  "orientation": "any",
+  "categories": ["sports", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

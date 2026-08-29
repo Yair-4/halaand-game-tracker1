@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111513">
+  <meta name="description" content="Erling Haaland's upcoming and recent Manchester City and Norway matches, with every kickoff shown in your local time.">
+  <meta name="application-name" content="Haaland">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Haaland">
+  <meta property="og:title" content="Haaland Match Index">
+  <meta property="og:description" content="Club + country. Every kickoff in your local time.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="og.png">
+  <title>Haaland Match Index — Upcoming & Recent Games</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    :root {
+      --background:#edf2ef; --foreground:#111513; --card:#f8faf8; --muted:#e4ebe7;
+      --line:#d7dfda; --pitch:#1f8f5a; --sky:#86cee9; --norway:#d51c38;
+      --ink-soft:#8b9690; --ink-muted:#66716b; --radius:.65rem;
+      --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; font-family:var(--sans); }
+    body { margin:0; background:var(--background); color:var(--foreground); -webkit-font-smoothing:antialiased; }
+    a { color:inherit; text-decoration:none; }
+    button { font:inherit; }
+    ::selection { background:var(--sky); color:#0c1518; }
+
+    .site-shell { width:100%; max-width:1440px; margin:0 auto; padding:0 40px 32px; }
+    .site-header { height:82px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; line-height:1; }
+    .brand-number { width:40px; height:40px; border-radius:50%; background:var(--foreground); color:var(--background); display:grid; place-items:center; font-family:var(--mono); font-size:14px; font-weight:800; }
+    .brand strong { display:block; font-size:14px; font-weight:900; letter-spacing:.12em; }
+    .brand small { display:block; margin-top:5px; font-family:var(--mono); font-size:9px; letter-spacing:.22em; color:var(--ink-muted); }
+    .timezone-badge { max-width:55vw; display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:var(--card); font-family:var(--mono); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; box-shadow:0 1px 0 rgba(17,21,19,.06); }
+    .timezone-badge span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .icon { width:1em; height:1em; flex:0 0 auto; display:inline-block; vertical-align:-.12em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .timezone-badge .check { color:var(--pitch); }
+
+    .hero-grid { display:grid; grid-template-columns:1.05fr .95fr; min-height:590px; overflow:hidden; border-bottom:1px solid var(--line); }
+    .hero-copy { position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; padding:80px 40px 80px 0; }
+    .label-row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+    .live-label { display:inline-flex; align-items:center; gap:8px; border-radius:999px; background:var(--foreground); color:var(--background); padding:6px 12px; font-family:var(--mono); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; }
+    .live-label i { width:6px; height:6px; border-radius:50%; background:var(--sky); animation:pulse 1.6s ease-in-out infinite; }
+    .eyebrow { font-family:var(--mono); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.15em; color:var(--ink-muted); }
+    .hero-kicker { margin:40px 0 0; font-family:var(--mono); font-size:clamp(2.5rem,5vw,5rem); font-weight:950; line-height:1; letter-spacing:-.08em; color:var(--sky); }
+    .hero-title { margin:4px 0 0; max-width:760px; font-size:clamp(3.3rem,7.1vw,7.6rem); font-weight:950; text-transform:uppercase; line-height:.78; letter-spacing:-.075em; overflow-wrap:anywhere; }
+    .hero-title span { display:block; margin:12px 0; font-size:.22em; letter-spacing:.25em; color:var(--ink-soft); }
+    .hero-meta { margin-top:48px; max-width:680px; display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:20px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .hero-meta > div { display:flex; flex-direction:column; gap:4px; }
+    .hero-meta-label { font-family:var(--mono); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.15em; color:var(--ink-muted); }
+    .hero-meta strong { font-size:16px; font-weight:700; }
+    .countdown { margin-top:20px; display:flex; align-items:center; gap:8px; color:var(--pitch); font-size:14px; font-weight:700; }
+
+    .portrait-panel { position:relative; min-height:560px; overflow:hidden; background:#c8e8f3; isolation:isolate; }
+    .portrait-panel::before { content:""; position:absolute; inset:0; z-index:0; opacity:.4; background-image:repeating-linear-gradient(90deg,transparent 0,transparent 49px,rgba(17,21,19,.12) 50px); }
+    .portrait-number { position:absolute; right:-8px; top:-64px; z-index:0; font-family:var(--mono); font-size:27rem; font-weight:950; line-height:1; letter-spacing:-.14em; color:rgba(255,255,255,.45); }
+    .portrait-image { position:absolute; inset:0; z-index:10; width:100%; height:100%; object-fit:cover; object-position:50% 22%; mix-blend-mode:multiply; filter:grayscale(12%); }
+    .portrait-gradient { position:absolute; inset:0; z-index:20; background:linear-gradient(to top,rgba(16,25,22,.9),transparent 55%); pointer-events:none; }
+    .portrait-caption { position:absolute; left:40px; bottom:40px; z-index:30; color:#fff; line-height:1; }
+    .portrait-caption span { display:block; font-family:var(--mono); font-size:10px; font-weight:800; letter-spacing:.25em; color:rgba(255,255,255,.7); }
+    .portrait-caption strong { display:block; margin-top:4px; font-size:60px; font-weight:950; letter-spacing:-.06em; }
+    .form-card { position:absolute; right:28px; top:28px; z-index:30; min-width:128px; display:flex; flex-direction:column; padding:12px; border:1px solid rgba(255,255,255,.35); border-radius:12px; background:rgba(16,25,22,.85); color:#fff; box-shadow:0 18px 45px rgba(0,0,0,.24); backdrop-filter:blur(12px); }
+    .form-card span { font-family:var(--mono); font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.17em; color:var(--sky); }
+    .form-card strong { margin-top:4px; font-size:20px; font-weight:950; letter-spacing:-.04em; }
+    .form-card small { margin-top:2px; font-size:10px; color:rgba(255,255,255,.6); }
+
+    .content-section { padding:80px 0; }
+    .section-heading { margin-bottom:28px; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }
+    .section-heading h2 { margin:4px 0 0; font-size:48px; font-weight:950; letter-spacing:-.06em; }
+    .filter-group { display:flex; width:max-content; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:12px; background:var(--card); box-shadow:0 1px 0 rgba(17,21,19,.06); }
+    .filter-btn { border:0; border-radius:8px; background:transparent; color:var(--ink-muted); padding:8px 12px; cursor:pointer; font-size:13px; font-weight:700; transition:.15s ease; }
+    .filter-btn:hover { background:var(--muted); color:var(--foreground); }
+    .filter-btn.active { background:var(--foreground); color:var(--background); }
+
+    .schedule-grid { display:grid; grid-template-columns:1.3fr .7fr; gap:20px; }
+    .panel { overflow:hidden; border:1px solid var(--line); border-radius:16px; background:var(--card); box-shadow:0 8px 40px rgba(25,39,31,.035); }
+    .panel-heading { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid var(--line); }
+    .panel-heading > div { display:flex; align-items:center; gap:10px; }
+    .panel-heading h3 { margin:0; font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+    .panel-heading p { margin:0; font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-muted); }
+    .panel-count { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:var(--foreground); color:var(--background); font-family:var(--mono); font-size:10px; font-weight:800; }
+    .rows > * + * { border-top:1px solid var(--line); }
+    .fixture-row { display:flex; align-items:center; gap:16px; padding:20px 24px; transition:background .15s ease; }
+    .fixture-row:hover { background:rgba(228,235,231,.55); }
+    .fixture-date { width:40px; flex:0 0 40px; display:flex; flex-direction:column; align-items:center; line-height:1; }
+    .fixture-day { font-family:var(--mono); font-size:20px; font-weight:950; letter-spacing:-.08em; }
+    .fixture-month { margin-top:4px; font-family:var(--mono); font-size:8px; font-weight:800; letter-spacing:.17em; color:var(--ink-muted); }
+    .team-mark { width:40px; height:40px; flex:0 0 40px; display:grid; place-items:center; border:1px solid; border-radius:50%; font-family:var(--mono); font-size:9px; font-weight:950; }
+    .team-mark.city { border-color:#6cb9d8; background:#bfe9f8; color:#123849; }
+    .team-mark.norway { border-color:#d95a6d; background:#f4d5da; color:#8f1026; }
+    .fixture-main { min-width:0; flex:1; }
+    .fixture-main .eyebrow { margin:0 0 4px; }
+    .fixture-main h3 { margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:18px; font-weight:750; letter-spacing:-.02em; }
+    .vs { color:var(--ink-soft); }
+    .venue { margin:4px 0 0; display:flex; align-items:center; gap:6px; color:var(--ink-muted); font-size:14px; }
+    .fixture-local-time { min-width:144px; text-align:right; }
+    .fixture-local-time .label { margin-bottom:4px; display:flex; align-items:center; justify-content:flex-end; gap:6px; color:var(--ink-muted); font-size:12px; }
+    .fixture-local-time time { font-family:var(--mono); font-size:14px; font-weight:700; }
+    .mobile-local-time { display:none; margin-top:8px; align-items:center; gap:6px; color:var(--pitch); font-family:var(--mono); font-size:10px; font-weight:700; }
+    .source-link { width:32px; height:32px; flex:0 0 32px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; color:var(--ink-muted); transition:.15s ease; }
+    .source-link:hover { transform:translateY(-2px); border-color:var(--foreground); background:var(--foreground); color:var(--background); }
+
+    .result-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:20px 24px; }
+    .result-left { min-width:0; display:flex; align-items:center; gap:12px; }
+    .result-status { width:28px; height:28px; flex:0 0 28px; display:grid; place-items:center; border-radius:6px; font-family:var(--mono); font-size:10px; font-weight:950; }
+    .result-status.win { background:#d7efe2; color:#17683e; }
+    .result-status.loss { background:#f2d8dc; color:#a31830; }
+    .result-copy { min-width:0; }
+    .result-copy .eyebrow { margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .result-copy h3 { margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:750; letter-spacing:-.02em; }
+    .result-right { display:flex; align-items:center; gap:12px; }
+    .goal-pill { display:inline-flex; padding:4px 8px; border-radius:999px; background:#d7efe2; color:#17683e; font-family:var(--mono); font-size:9px; font-weight:800; text-transform:uppercase; }
+    .scoreline { min-width:48px; text-align:right; font-family:var(--mono); font-size:18px; font-weight:950; }
+    .scoreline span { padding:0 2px; color:var(--ink-soft); }
+    .snapshot-note { margin:24px; padding:20px; border-radius:12px; background:var(--foreground); color:var(--background); }
+    .snapshot-note span { font-family:var(--mono); font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.17em; color:var(--sky); }
+    .snapshot-note strong { display:block; margin-top:4px; font-family:var(--mono); font-size:24px; font-weight:950; letter-spacing:-.06em; }
+    .snapshot-note p { margin:12px 0 0; max-width:320px; font-size:12px; line-height:1.6; color:rgba(237,242,239,.6); }
+
+    .site-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:24px 0; border-top:1px solid var(--line); color:var(--ink-muted); font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.06em; }
+    .site-footer p { margin:0; }
+    .site-footer a { text-decoration:underline; text-decoration-color:rgba(139,150,144,.5); text-underline-offset:2px; }
+    .site-footer a:hover { color:var(--foreground); }
+    .offline-note { display:none; position:fixed; z-index:100; left:50%; bottom:16px; transform:translateX(-50%); background:var(--foreground); color:var(--background); border-radius:999px; padding:8px 12px; font:700 10px var(--mono); text-transform:uppercase; letter-spacing:.08em; box-shadow:0 8px 30px rgba(0,0,0,.18); }
+    .offline .offline-note { display:block; }
+
+    @keyframes pulse { 50% { opacity:.35; } }
+    @media (max-width:1199px) { .schedule-grid { grid-template-columns:1fr; } }
+    @media (max-width:1023px) {
+      .site-shell { padding-left:28px; padding-right:28px; }
+      .hero-grid { grid-template-columns:1fr; min-height:0; }
+      .hero-copy { padding:56px 0; }
+      .portrait-panel { min-height:560px; }
+    }
+    @media (max-width:639px) {
+      .site-shell { padding:0 16px 32px; }
+      .timezone-badge .check { display:none; }
+      .hero-copy { min-height:550px; padding:52px 0; }
+      .hero-meta { grid-template-columns:1fr; }
+      .portrait-panel { min-height:520px; }
+      .portrait-caption { left:24px; bottom:28px; }
+      .portrait-caption strong { font-size:42px; }
+      .form-card { right:20px; top:20px; }
+      .content-section { padding:56px 0; }
+      .section-heading { align-items:flex-start; flex-direction:column; }
+      .section-heading h2 { font-size:40px; }
+      .panel-heading { padding:16px; }
+      .fixture-row { display:grid; grid-template-columns:32px 36px minmax(0,1fr) 32px; gap:12px; padding:20px 16px; }
+      .fixture-date { width:32px; }
+      .team-mark { width:36px; height:36px; }
+      .fixture-local-time { display:none; }
+      .mobile-local-time { display:flex; }
+      .venue { font-size:12px; }
+      .result-row { align-items:flex-start; padding:20px 16px; }
+      .goal-pill { display:none; }
+      .snapshot-note { margin:16px; }
+      .site-footer { align-items:flex-start; flex-direction:column; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="site-shell">
+      <header class="site-header">
+        <a href="#top" class="brand" aria-label="Haaland match index home">
+          <span class="brand-number">09</span>
+          <span><strong>HAALAND</strong><small>MATCH INDEX</small></span>
+        </a>
+        <div class="timezone-badge" title="Kickoff times are shown in this timezone">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+          <span id="timezone">Your local timezone</span>
+          <svg class="icon check" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg>
+        </div>
+      </header>
+
+      <section id="top" class="hero-grid" aria-labelledby="next-match-title">
+        <div class="hero-copy">
+          <div class="label-row"><span class="live-label"><i></i>Next match</span><span class="eyebrow" id="hero-competition"></span></div>
+          <p class="hero-kicker">THE NEXT 90</p>
+          <h1 id="next-match-title" class="hero-title"></h1>
+          <div class="hero-meta">
+            <div><span class="hero-meta-label">Your local kickoff</span><strong id="hero-kickoff"></strong></div>
+            <div><span class="hero-meta-label">Venue</span><strong id="hero-venue"></strong></div>
+          </div>
+          <div class="countdown">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18"/><rect width="18" height="18" x="3" y="4" rx="2"/></svg>
+            <span id="countdown"></span>
+          </div>
+        </div>
+        <div class="portrait-panel">
+          <span class="portrait-number" aria-hidden="true">9</span>
+          <img class="portrait-image" src="haaland-portrait.jpg" alt="Footballer applauding in Norway colours">
+          <div class="portrait-gradient" aria-hidden="true"></div>
+          <div class="portrait-caption"><span>ERLING BRAUT</span><strong>HAALAND</strong></div>
+          <div class="form-card"><span>Latest</span><strong id="latest-goals"></strong><small id="latest-opponent"></small></div>
+        </div>
+      </section>
+
+      <section class="content-section" aria-labelledby="schedule-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">Club + country</p><h2 id="schedule-title">Match schedule</h2></div>
+          <div class="filter-group" aria-label="Filter matches by team">
+            <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true">All games</button>
+            <button class="filter-btn" type="button" data-filter="city" aria-pressed="false">Man City</button>
+            <button class="filter-btn" type="button" data-filter="norway" aria-pressed="false">Norway</button>
+          </div>
+        </div>
+
+        <div class="schedule-grid">
+          <div class="panel">
+            <div class="panel-heading"><div><span class="panel-count" id="upcoming-count">0</span><h3>Upcoming</h3></div><p>Times convert automatically</p></div>
+            <div class="rows" id="upcoming-list"></div>
+          </div>
+          <aside class="panel recent-panel" aria-labelledby="recent-title">
+            <div class="panel-heading"><div><span class="panel-count" id="recent-count">0</span><h3 id="recent-title">Recent</h3></div><p>Final scores</p></div>
+            <div class="rows" id="recent-list"></div>
+            <div class="snapshot-note"><span>Data snapshot</span><strong>29 AUG 2026</strong><p>Kickoff times can move. Use the arrow on any match to verify the official source.</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <p>Independent fixture overview. Not affiliated with Erling Haaland, Manchester City or NFF.</p>
+        <p>Photo by <a href="https://commons.wikimedia.org/wiki/File:Erling_Haaland_June_2025.jpg" target="_blank" rel="noreferrer">MichaelEmilio</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a></p>
+      </footer>
+    </div>
+  </main>
+  <div class="offline-note">Offline — cached version</div>
+
+  <script>
+    const upcoming = [
+      {id:'mci-cov-2026-09-05',team:'city',kickoff:'2026-09-05T14:00:00Z',competition:'Premier League',home:'Manchester City',away:'Coventry City',venue:'Etihad Stadium',source:'https://www.mancity.com/fixtures/mens'},
+      {id:'mun-mci-2026-09-13',team:'city',kickoff:'2026-09-13T15:30:00Z',competition:'Premier League',home:'Manchester United',away:'Manchester City',venue:'Old Trafford',source:'https://www.mancity.com/news/mens/crystal-palace-manchester-united-2026-27-premier-league-tv-coverage-63919014'},
+      {id:'mci-nor-2026-09-17',team:'city',kickoff:'2026-09-17T18:30:00Z',competition:'Carabao Cup · Round 3',home:'Manchester City',away:'Norwich City',venue:'Etihad Stadium',source:'https://www.mancity.com/news/mens/city-v-norwich-carabao-cup-date-kick-off-time-confirmed-63923530'},
+      {id:'mci-sun-2026-09-20',team:'city',kickoff:'2026-09-20T13:00:00Z',competition:'Premier League',home:'Manchester City',away:'Sunderland',venue:'Etihad Stadium',source:'https://www.mancity.com/news/mens/city-sunderland-premier-league-fixture-moved-63923534'},
+      {id:'nor-den-2026-09-24',team:'norway',kickoff:'2026-09-24T18:45:00Z',competition:'UEFA Nations League A4',home:'Norway',away:'Denmark',venue:'Ullevaal Stadion',source:'https://www.fotball.no/landslag/norge-a-herrer/2026/her-er-norges-nations-league-gruppe/'},
+      {id:'nor-por-2026-09-27',team:'norway',kickoff:'2026-09-27T18:45:00Z',competition:'UEFA Nations League A4',home:'Norway',away:'Portugal',venue:'Ullevaal Stadion',source:'https://www.fotball.no/landslag/norge-a-herrer/2026/her-er-norges-nations-league-gruppe/'},
+      {id:'wal-nor-2026-10-01',team:'norway',kickoff:'2026-10-01T18:45:00Z',competition:'UEFA Nations League A4',home:'Wales',away:'Norway',venue:'Venue TBC',source:'https://www.uefa.com/uefanationsleague/teams/101--norway/matches/'},
+      {id:'por-nor-2026-10-04',team:'norway',kickoff:'2026-10-04T18:45:00Z',competition:'UEFA Nations League A4',home:'Portugal',away:'Norway',venue:'Venue TBC',source:'https://www.uefa.com/uefanationsleague/teams/101--norway/matches/'}
+    ];
+    const recent = [
+      {id:'cry-mci-2026-08-28',team:'city',kickoff:'2026-08-28T19:00:00Z',competition:'Premier League',home:'Crystal Palace',away:'Manchester City',venue:'Selhurst Park',homeScore:1,awayScore:4,haalandGoals:2,source:'https://www.mancity.com/news/mens/crystal-palace-manchester-city-202627-match-report-63923537'},
+      {id:'mci-bou-2026-08-23',team:'city',kickoff:'2026-08-23T13:00:00Z',competition:'Premier League',home:'Manchester City',away:'Bournemouth',venue:'Etihad Stadium',homeScore:2,awayScore:1,haalandGoals:0,source:'https://www.mancity.com/news/mens/manchester-city-v-bournemouth-202627-premier-league-match-report-63923083'},
+      {id:'ars-mci-2026-08-16',team:'city',kickoff:'2026-08-16T14:00:00Z',competition:'Community Shield',home:'Arsenal',away:'Manchester City',venue:'Principality Stadium',homeScore:3,awayScore:0,haalandGoals:0,source:'https://www.mancity.com/news/mens/arsenal-manchester-city-community-shield-match-report-63922483'},
+      {id:'nor-eng-2026-07-11',team:'norway',kickoff:'2026-07-11T21:00:00Z',competition:'FIFA World Cup · QF',home:'Norway',away:'England',venue:'Miami Stadium',homeScore:1,awayScore:2,haalandGoals:0,source:'https://www.fotball.no/fotballdata/kamp/?fiksId=9218076'},
+      {id:'bra-nor-2026-07-05',team:'norway',kickoff:'2026-07-05T20:00:00Z',competition:'FIFA World Cup · R16',home:'Brazil',away:'Norway',venue:'New York New Jersey Stadium',homeScore:1,awayScore:2,haalandGoals:2,source:'https://www.fotball.no/fotballdata/kamp/?fiksId=9209359'},
+      {id:'civ-nor-2026-06-30',team:'norway',kickoff:'2026-06-30T17:00:00Z',competition:'FIFA World Cup · R32',home:'Côte d’Ivoire',away:'Norway',venue:'Dallas Stadium',homeScore:1,awayScore:2,haalandGoals:1,source:'https://www.fotball.no/fotballdata/kamp/?fiksId=9195686'}
+    ];
+
+    let currentFilter = 'all';
+    const $ = (s) => document.querySelector(s);
+    const shortTeam = name => name.replace('Manchester ', 'Man ');
+    const esc = s => String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const icon = (name) => {
+      const paths = {
+        pin:'<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/>',
+        clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        arrow:'<path d="M7 17 17 7M7 7h10v10"/>'
+      };
+      return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`;
+    };
+    const localTime = (iso, compact=false) => new Intl.DateTimeFormat(undefined, {
+      weekday:compact?undefined:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', timeZoneName:compact?undefined:'short'
+    }).format(new Date(iso));
+    const dayUTC = iso => new Intl.DateTimeFormat('en',{day:'2-digit',timeZone:'UTC'}).format(new Date(iso));
+    const monthUTC = iso => new Intl.DateTimeFormat('en',{month:'short',timeZone:'UTC'}).format(new Date(iso)).toUpperCase();
+
+    function fixtureRow(f) {
+      return `<article class="fixture-row">
+        <div class="fixture-date"><span class="fixture-day">${dayUTC(f.kickoff)}</span><span class="fixture-month">${monthUTC(f.kickoff)}</span></div>
+        <span class="team-mark ${f.team}" aria-hidden="true">${f.team==='city'?'MC':'NO'}</span>
+        <div class="fixture-main"><p class="eyebrow">${esc(f.competition)}</p><h3>${esc(shortTeam(f.home))} <span class="vs">vs</span> ${esc(shortTeam(f.away))}</h3><p class="venue">${icon('pin')}${esc(f.venue)}</p><p class="mobile-local-time">${icon('clock')}<time datetime="${f.kickoff}">${esc(localTime(f.kickoff,true))}</time></p></div>
+        <div class="fixture-local-time"><span class="label">${icon('clock')} Local time</span><time datetime="${f.kickoff}">${esc(localTime(f.kickoff,true))}</time></div>
+        <a href="${esc(f.source)}" target="_blank" rel="noreferrer" class="source-link" aria-label="Open official fixture source for ${esc(f.home)} versus ${esc(f.away)}">${icon('arrow')}</a>
+      </article>`;
+    }
+
+    function resultRow(r) {
+      const haalandTeam = r.team === 'city' ? 'Manchester City' : 'Norway';
+      const won = (r.home===haalandTeam && r.homeScore>r.awayScore) || (r.away===haalandTeam && r.awayScore>r.homeScore);
+      return `<article class="result-row">
+        <div class="result-left"><span class="result-status ${won?'win':'loss'}">${won?'W':'L'}</span><div class="result-copy"><p class="eyebrow">${esc(localTime(r.kickoff,true))} · ${esc(r.competition)}</p><h3>${esc(shortTeam(r.home))} <span class="vs">vs</span> ${esc(shortTeam(r.away))}</h3></div></div>
+        <div class="result-right">${r.haalandGoals>0?`<span class="goal-pill">Haaland ×${r.haalandGoals}</span>`:''}<span class="scoreline">${r.homeScore}<span>–</span>${r.awayScore}</span><a href="${esc(r.source)}" target="_blank" rel="noreferrer" class="source-link" aria-label="Read the official report for ${esc(r.home)} versus ${esc(r.away)}">${icon('arrow')}</a></div>
+      </article>`;
+    }
+
+    function filtered(items) { return currentFilter === 'all' ? items : items.filter(x => x.team === currentFilter); }
+    function render() {
+      const u = filtered(upcoming), r = filtered(recent);
+      const next = u[0] || upcoming[0], latest = r[0] || recent[0];
+      const haalandTeam = latest.team === 'city' ? 'Manchester City' : 'Norway';
+      const opponent = latest.home === haalandTeam ? latest.away : latest.home;
+      $('#hero-competition').textContent = next.competition;
+      $('#next-match-title').innerHTML = `${esc(shortTeam(next.home))}<span>vs</span>${esc(shortTeam(next.away))}`;
+      $('#hero-kickoff').textContent = localTime(next.kickoff,false);
+      $('#hero-venue').textContent = next.venue;
+      $('#latest-goals').textContent = `${latest.haalandGoals} ${latest.haalandGoals===1?'goal':'goals'}`;
+      $('#latest-opponent').textContent = `vs ${shortTeam(opponent)}`;
+      $('#upcoming-count').textContent = u.length;
+      $('#recent-count').textContent = r.length;
+      $('#upcoming-list').innerHTML = u.map(fixtureRow).join('');
+      $('#recent-list').innerHTML = r.map(resultRow).join('');
+      updateCountdown(next.kickoff);
+    }
+
+    let countdownKickoff = upcoming[0].kickoff;
+    function updateCountdown(iso=countdownKickoff) {
+      countdownKickoff = iso;
+      const distance = Math.max(0, new Date(iso).getTime() - Date.now());
+      const days = Math.floor(distance/86400000), hours = Math.floor((distance%86400000)/3600000), minutes = Math.floor((distance%3600000)/60000);
+      $('#countdown').textContent = distance===0 ? 'Kickoff time reached' : (days>0 ? `${days}d ${hours}h to kickoff` : `${hours}h ${minutes}m to kickoff`);
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => { const active=b===btn; b.classList.toggle('active',active); b.setAttribute('aria-pressed',String(active)); });
+      render();
+    }));
+
+    try { $('#timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_',' '); } catch {}
+    render();
+    setInterval(() => updateCountdown(), 60000);
+
+    function updateOnlineStatus() { document.documentElement.classList.toggle('offline', !navigator.onLine); }
+    addEventListener('online', updateOnlineStatus); addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
+
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
+    }
+  </script>
+</body>
+</html>
