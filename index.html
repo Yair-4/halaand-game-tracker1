@@ -335,6 +335,7 @@
     let displayedUpcomingIds = '';
     let matchClient = null;
     let matchDataState = null;
+    let hasResolvedInitialFetch = false;
     function render(now=Date.now()) {
       const u = upcomingMatches(now), r = filtered(recent).slice().sort((a,b) => new Date(b.kickoff) - new Date(a.kickoff)).slice(0,6);
       const next = u[0], latest = r[0];
@@ -369,6 +370,7 @@
     }
 
     function refreshSchedule() {
+      if (!hasResolvedInitialFetch) return;
       const now = Date.now();
       // Re-render at kickoff without replacing the match links on every tick.
       const upcomingIds = JSON.stringify(upcomingMatches(now).map(f => f.id));
@@ -430,10 +432,33 @@
       $('#data-detail').textContent = `${message} ${details}. Open a match arrow to view its source.`;
     }
 
+    function renderInitialLoadingState() {
+      countdownKickoff = null;
+      countdownPending = false;
+      displayedUpcomingIds = '';
+      $('#hero-competition').textContent = '';
+      $('#next-match-title').textContent = 'Updating matches';
+      $('#next-match-title').classList.add('empty');
+      $('#hero-kickoff').textContent = 'Fetching latest data…';
+      $('#hero-venue').textContent = '—';
+      $('#latest-goals').textContent = 'Updating';
+      $('#latest-opponent').textContent = 'Checking latest result';
+      $('#upcoming-count').textContent = '0';
+      $('#recent-count').textContent = '0';
+      $('#upcoming-list').innerHTML = '<p class="empty-schedule">Fetching the latest fixtures…</p>';
+      $('#recent-list').innerHTML = '<p class="empty-schedule">Fetching the latest results…</p>';
+      $('#countdown').textContent = 'Waiting for the latest schedule';
+      setSyncIndicator('loading', 'Updating', 'Fetching the latest fixtures and results from ESPN');
+      $('#data-label').textContent = 'Updating matches';
+      $('#data-updated').textContent = 'Checking the source…';
+      $('#data-detail').textContent = 'Fetching fresh fixtures and results. Cached data will only be used if the live request fails.';
+    }
+
     function applyMatchData(state) {
       matchDataState = state;
       upcoming.splice(0,upcoming.length,...state.upcoming);
       recent.splice(0,recent.length,...state.recent);
+      hasResolvedInitialFetch = true;
       render();
     }
 
@@ -441,38 +466,43 @@
       if (!matchClient) return Promise.resolve();
       const pending = matchClient.refresh();
       matchDataState = matchClient.getState();
-      renderDataStatus();
+      if (hasResolvedInitialFetch) renderDataStatus();
+      else renderInitialLoadingState();
       return pending.then(applyMatchData);
     }
 
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => {
       currentFilter = btn.dataset.filter;
       document.querySelectorAll('.filter-btn').forEach(b => { const active=b===btn; b.classList.toggle('active',active); b.setAttribute('aria-pressed',String(active)); });
-      render();
+      if (hasResolvedInitialFetch) render();
+      else renderInitialLoadingState();
     }));
 
     try { $('#timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_',' '); } catch {}
-    render();
     setInterval(refreshSchedule, 1000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        render();
+        if (hasResolvedInitialFetch) render();
+        else renderInitialLoadingState();
         refreshFromSource();
       }
     });
-    addEventListener('pageshow', event => {
-      render();
-      if (event.persisted) refreshFromSource();
+    addEventListener('pageshow', () => {
+      if (hasResolvedInitialFetch) render();
+      else renderInitialLoadingState();
+      refreshFromSource();
     });
 
     if (typeof MatchData !== 'undefined') {
       matchClient = MatchData.createClient({fallback:{upcoming,recent,updatedAt:'2026-08-29T00:00:00Z'}});
-      applyMatchData(matchClient.getState());
-      // Always try the network on a fresh page entry. The client only reads the
-      // browser cache for a team after that team's live request fails.
+      // Do not paint fallback or cached data before the first network attempt.
+      // The client reads cache only after a live request for that team fails.
+      renderInitialLoadingState();
       refreshFromSource();
       setInterval(() => { if (document.visibilityState === 'visible') refreshFromSource(); },60000);
     } else {
+      hasResolvedInitialFetch = true;
+      render();
       setSyncIndicator('error', 'Fallback', 'The match update client failed to load');
       $('#data-label').textContent = 'Fallback data';
       $('#data-updated').textContent = '29 AUG 2026';
