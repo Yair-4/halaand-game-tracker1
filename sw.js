@@ -1,4 +1,4 @@
-const CACHE = 'haaland-match-index-v1';
+const CACHE = 'haaland-match-index-v2';
 const CORE = [
   './',
   './index.html',

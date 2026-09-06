@@ -22,5 +22,10 @@ IPHONE INSTALL
 UPDATING
 Edit index.html and redeploy the folder. When the installed app is opened online, the service worker uses the latest network files and updates its cache. If you change the list of files cached by sw.js, also change the CACHE value (for example v1 -> v2).
 
+MATCH DATA
+The fixture and result lists in index.html are a manually maintained snapshot, not a live score feed. Only fixtures with a scheduled kickoff in the future appear in Upcoming and Next match. The page advances automatically at kickoff and refreshes when reopened or brought to the foreground. Update the recent list separately with verified final scores; elapsed time alone does not confirm a result.
+
 LOCAL TEST
 Opening index.html directly works for the UI, but browsers do not register service workers from file:// URLs. For a real PWA/offline-install test, serve this folder over HTTPS or localhost.
+
+Run schedule regression checks with Node.js: node --test tests/match-schedule.test.cjs

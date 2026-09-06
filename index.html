@@ -52,6 +52,7 @@
     .hero-kicker { margin:40px 0 0; font-family:var(--mono); font-size:clamp(2.5rem,5vw,5rem); font-weight:950; line-height:1; letter-spacing:-.08em; color:var(--sky); }
     .hero-title { margin:4px 0 0; max-width:760px; font-size:clamp(3.3rem,7.1vw,7.6rem); font-weight:950; text-transform:uppercase; line-height:.78; letter-spacing:-.075em; overflow-wrap:anywhere; }
     .hero-title span { display:block; margin:12px 0; font-size:.22em; letter-spacing:.25em; color:var(--ink-soft); }
+    .hero-title.empty { font-size:clamp(2.8rem,5vw,5rem); line-height:.95; }
     .hero-meta { margin-top:48px; max-width:680px; display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:20px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
     .hero-meta > div { display:flex; flex-direction:column; gap:4px; }
     .hero-meta-label { font-family:var(--mono); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.15em; color:var(--ink-muted); }
@@ -87,6 +88,7 @@
     .panel-heading p { margin:0; font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-muted); }
     .panel-count { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:var(--foreground); color:var(--background); font-family:var(--mono); font-size:10px; font-weight:800; }
     .rows > * + * { border-top:1px solid var(--line); }
+    .empty-schedule { margin:0; padding:24px; color:var(--ink-muted); font-size:14px; line-height:1.6; }
     .fixture-row { display:flex; align-items:center; gap:16px; padding:20px 24px; transition:background .15s ease; }
     .fixture-row:hover { background:rgba(228,235,231,.55); }
     .fixture-date { width:40px; flex:0 0 40px; display:flex; flex-direction:column; align-items:center; line-height:1; }
@@ -224,7 +226,7 @@
           <aside class="panel recent-panel" aria-labelledby="recent-title">
             <div class="panel-heading"><div><span class="panel-count" id="recent-count">0</span><h3 id="recent-title">Recent</h3></div><p>Final scores</p></div>
             <div class="rows" id="recent-list"></div>
-            <div class="snapshot-note"><span>Data snapshot</span><strong>29 AUG 2026</strong><p>Kickoff times can move. Use the arrow on any match to verify the official source.</p></div>
+            <div class="snapshot-note"><span>Data snapshot</span><strong>29 AUG 2026</strong><p>Upcoming matches advance automatically after their scheduled kickoff. Scores are updated manually. Use the arrow on any match to verify the official source.</p></div>
           </aside>
         </div>
       </section>
@@ -295,30 +297,51 @@
     }
 
     function filtered(items) { return currentFilter === 'all' ? items : items.filter(x => x.team === currentFilter); }
-    function render() {
-      const u = filtered(upcoming), r = filtered(recent);
-      const next = u[0] || upcoming[0], latest = r[0] || recent[0];
+    function upcomingMatches(now) {
+      return filtered(upcoming)
+        .filter(f => new Date(f.kickoff).getTime() > now)
+        .sort((a,b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
+    }
+
+    let countdownKickoff = null;
+    let displayedUpcomingIds = '';
+    function render(now=Date.now()) {
+      const u = upcomingMatches(now), r = filtered(recent);
+      const next = u[0], latest = r[0] || recent[0];
+      displayedUpcomingIds = JSON.stringify(u.map(f => f.id));
+      countdownKickoff = next ? next.kickoff : null;
       const haalandTeam = latest.team === 'city' ? 'Manchester City' : 'Norway';
       const opponent = latest.home === haalandTeam ? latest.away : latest.home;
-      $('#hero-competition').textContent = next.competition;
-      $('#next-match-title').innerHTML = `${esc(shortTeam(next.home))}<span>vs</span>${esc(shortTeam(next.away))}`;
-      $('#hero-kickoff').textContent = localTime(next.kickoff,false);
-      $('#hero-venue').textContent = next.venue;
+      $('#hero-competition').textContent = next ? next.competition : '';
+      $('#next-match-title').innerHTML = next ? `${esc(shortTeam(next.home))}<span>vs</span>${esc(shortTeam(next.away))}` : 'No upcoming matches';
+      $('#next-match-title').classList.toggle('empty', !next);
+      $('#hero-kickoff').textContent = next ? localTime(next.kickoff,false) : 'To be announced';
+      $('#hero-venue').textContent = next ? next.venue : 'To be announced';
       $('#latest-goals').textContent = `${latest.haalandGoals} ${latest.haalandGoals===1?'goal':'goals'}`;
       $('#latest-opponent').textContent = `vs ${shortTeam(opponent)}`;
       $('#upcoming-count').textContent = u.length;
       $('#recent-count').textContent = r.length;
-      $('#upcoming-list').innerHTML = u.map(fixtureRow).join('');
+      $('#upcoming-list').innerHTML = u.length ? u.map(fixtureRow).join('') : '<p class="empty-schedule">No upcoming matches in this snapshot. Check back for schedule updates.</p>';
       $('#recent-list').innerHTML = r.map(resultRow).join('');
-      updateCountdown(next.kickoff);
+      updateCountdown(now);
     }
 
-    let countdownKickoff = upcoming[0].kickoff;
-    function updateCountdown(iso=countdownKickoff) {
-      countdownKickoff = iso;
-      const distance = Math.max(0, new Date(iso).getTime() - Date.now());
+    function updateCountdown(now=Date.now()) {
+      if (!countdownKickoff) {
+        $('#countdown').textContent = 'Waiting for schedule updates';
+        return;
+      }
+      const distance = Math.max(0, new Date(countdownKickoff).getTime() - now);
       const days = Math.floor(distance/86400000), hours = Math.floor((distance%86400000)/3600000), minutes = Math.floor((distance%3600000)/60000);
-      $('#countdown').textContent = distance===0 ? 'Kickoff time reached' : (days>0 ? `${days}d ${hours}h to kickoff` : `${hours}h ${minutes}m to kickoff`);
+      $('#countdown').textContent = distance<60000 ? 'Less than a minute to kickoff' : (days>0 ? `${days}d ${hours}h to kickoff` : `${hours}h ${minutes}m to kickoff`);
+    }
+
+    function refreshSchedule() {
+      const now = Date.now();
+      // Re-render at kickoff without replacing the match links on every tick.
+      const upcomingIds = JSON.stringify(upcomingMatches(now).map(f => f.id));
+      if (upcomingIds !== displayedUpcomingIds) render(now);
+      else updateCountdown(now);
     }
 
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -329,7 +352,9 @@
 
     try { $('#timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_',' '); } catch {}
     render();
-    setInterval(() => updateCountdown(), 60000);
+    setInterval(refreshSchedule, 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); });
+    addEventListener('pageshow', () => render());
 
     function updateOnlineStatus() { document.documentElement.classList.toggle('offline', !navigator.onLine); }
     addEventListener('online', updateOnlineStatus); addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
