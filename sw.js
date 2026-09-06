@@ -1,7 +1,8 @@
-const CACHE = 'haaland-match-index-v2';
+const CACHE = 'haaland-match-index-v3';
 const CORE = [
   './',
   './index.html',
+  './match-data.js',
   './manifest.webmanifest',
   './favicon.svg',
   './apple-touch-icon.png',

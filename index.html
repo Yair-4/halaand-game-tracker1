@@ -38,6 +38,18 @@
     .brand-number { width:40px; height:40px; border-radius:50%; background:var(--foreground); color:var(--background); display:grid; place-items:center; font-family:var(--mono); font-size:14px; font-weight:800; }
     .brand strong { display:block; font-size:14px; font-weight:900; letter-spacing:.12em; }
     .brand small { display:block; margin-top:5px; font-family:var(--mono); font-size:9px; letter-spacing:.22em; color:var(--ink-muted); }
+    .header-tools { display:flex; align-items:center; gap:8px; min-width:0; }
+    .sync-indicator { display:inline-flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--ink-muted); font-family:var(--mono); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; box-shadow:0 1px 0 rgba(17,21,19,.06); }
+    .sync-indicator i { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:var(--ink-soft); }
+    .sync-indicator[data-state=loading] i { background:var(--sky); animation:pulse 1.2s ease-in-out infinite; }
+    .sync-indicator[data-state=live] { color:#17683e; }
+    .sync-indicator[data-state=live] i { background:var(--pitch); }
+    .sync-indicator[data-state=cached] { color:#8b5b10; }
+    .sync-indicator[data-state=cached] i { background:#d89a2b; }
+    .sync-indicator[data-state=mixed] { color:#8b5b10; }
+    .sync-indicator[data-state=mixed] i { background:#d89a2b; }
+    .sync-indicator[data-state=error] { color:#a31830; }
+    .sync-indicator[data-state=error] i { background:#d51c38; }
     .timezone-badge { max-width:55vw; display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:var(--card); font-family:var(--mono); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; box-shadow:0 1px 0 rgba(17,21,19,.06); }
     .timezone-badge span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .icon { width:1em; height:1em; flex:0 0 auto; display:inline-block; vertical-align:-.12em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -114,6 +126,7 @@
     .result-status { width:28px; height:28px; flex:0 0 28px; display:grid; place-items:center; border-radius:6px; font-family:var(--mono); font-size:10px; font-weight:950; }
     .result-status.win { background:#d7efe2; color:#17683e; }
     .result-status.loss { background:#f2d8dc; color:#a31830; }
+    .result-status.draw { background:var(--muted); color:var(--ink-muted); }
     .result-copy { min-width:0; }
     .result-copy .eyebrow { margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .result-copy h3 { margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:750; letter-spacing:-.02em; }
@@ -123,7 +136,7 @@
     .scoreline span { padding:0 2px; color:var(--ink-soft); }
     .snapshot-note { margin:24px; padding:20px; border-radius:12px; background:var(--foreground); color:var(--background); }
     .snapshot-note span { font-family:var(--mono); font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.17em; color:var(--sky); }
-    .snapshot-note strong { display:block; margin-top:4px; font-family:var(--mono); font-size:24px; font-weight:950; letter-spacing:-.06em; }
+    .snapshot-note strong { display:block; margin-top:4px; font-family:var(--mono); font-size:20px; font-weight:950; letter-spacing:-.04em; }
     .snapshot-note p { margin:12px 0 0; max-width:320px; font-size:12px; line-height:1.6; color:rgba(237,242,239,.6); }
 
     .site-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:24px 0; border-top:1px solid var(--line); color:var(--ink-muted); font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.06em; }
@@ -144,6 +157,9 @@
     @media (max-width:639px) {
       .site-shell { padding:0 16px 32px; }
       .timezone-badge .check { display:none; }
+      .header-tools { gap:6px; }
+      .sync-indicator { padding:8px; }
+      .sync-indicator span { display:none; }
       .hero-copy { min-height:550px; padding:52px 0; }
       .hero-meta { grid-template-columns:1fr; }
       .portrait-panel { min-height:520px; }
@@ -178,10 +194,15 @@
           <span class="brand-number">09</span>
           <span><strong>HAALAND</strong><small>MATCH INDEX</small></span>
         </a>
-        <div class="timezone-badge" title="Kickoff times are shown in this timezone">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
-          <span id="timezone">Your local timezone</span>
-          <svg class="icon check" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg>
+        <div class="header-tools">
+          <div id="sync-indicator" class="sync-indicator" data-state="loading" role="status" aria-live="polite" title="Fetching the latest match data">
+            <i aria-hidden="true"></i><span id="sync-indicator-text">Updating</span>
+          </div>
+          <div class="timezone-badge" title="Kickoff times are shown in this timezone">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+            <span id="timezone">Your local timezone</span>
+            <svg class="icon check" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg>
+          </div>
         </div>
       </header>
 
@@ -226,7 +247,7 @@
           <aside class="panel recent-panel" aria-labelledby="recent-title">
             <div class="panel-heading"><div><span class="panel-count" id="recent-count">0</span><h3 id="recent-title">Recent</h3></div><p>Final scores</p></div>
             <div class="rows" id="recent-list"></div>
-            <div class="snapshot-note"><span>Data snapshot</span><strong>29 AUG 2026</strong><p>Upcoming matches advance automatically after their scheduled kickoff. Scores are updated manually. Use the arrow on any match to verify the official source.</p></div>
+            <div class="snapshot-note" role="status" aria-live="polite"><span id="data-label">Updating matches</span><strong id="data-updated">Checking the source…</strong><p id="data-detail">Fetching the latest fixtures and results. Saved matches remain available while the update loads.</p></div>
           </aside>
         </div>
       </section>
@@ -239,6 +260,7 @@
   </main>
   <div class="offline-note">Offline — cached version</div>
 
+  <script src="./match-data.js"></script>
   <script>
     const upcoming = [
       {id:'mci-cov-2026-09-05',team:'city',kickoff:'2026-09-05T14:00:00Z',competition:'Premier League',home:'Manchester City',away:'Coventry City',venue:'Etihad Stadium',source:'https://www.mancity.com/fixtures/mens'},
@@ -276,59 +298,69 @@
     }).format(new Date(iso));
     const dayUTC = iso => new Intl.DateTimeFormat('en',{day:'2-digit',timeZone:'UTC'}).format(new Date(iso));
     const monthUTC = iso => new Intl.DateTimeFormat('en',{month:'short',timeZone:'UTC'}).format(new Date(iso)).toUpperCase();
+    const fixtureTime = (f, compact=false) => f.timeConfirmed === false
+      ? `${new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(f.kickoff))} · Time TBC`
+      : localTime(f.kickoff,compact);
+    const fixtureDateTime = f => f.timeConfirmed === false ? f.kickoff.slice(0,10) : f.kickoff;
 
     function fixtureRow(f) {
       return `<article class="fixture-row">
         <div class="fixture-date"><span class="fixture-day">${dayUTC(f.kickoff)}</span><span class="fixture-month">${monthUTC(f.kickoff)}</span></div>
         <span class="team-mark ${f.team}" aria-hidden="true">${f.team==='city'?'MC':'NO'}</span>
-        <div class="fixture-main"><p class="eyebrow">${esc(f.competition)}</p><h3>${esc(shortTeam(f.home))} <span class="vs">vs</span> ${esc(shortTeam(f.away))}</h3><p class="venue">${icon('pin')}${esc(f.venue)}</p><p class="mobile-local-time">${icon('clock')}<time datetime="${f.kickoff}">${esc(localTime(f.kickoff,true))}</time></p></div>
-        <div class="fixture-local-time"><span class="label">${icon('clock')} Local time</span><time datetime="${f.kickoff}">${esc(localTime(f.kickoff,true))}</time></div>
-        <a href="${esc(f.source)}" target="_blank" rel="noreferrer" class="source-link" aria-label="Open official fixture source for ${esc(f.home)} versus ${esc(f.away)}">${icon('arrow')}</a>
+        <div class="fixture-main"><p class="eyebrow">${esc(f.competition)}</p><h3>${esc(shortTeam(f.home))} <span class="vs">vs</span> ${esc(shortTeam(f.away))}</h3><p class="venue">${icon('pin')}${esc(f.venue)}</p><p class="mobile-local-time">${icon('clock')}<time datetime="${fixtureDateTime(f)}">${esc(fixtureTime(f,true))}</time></p></div>
+        <div class="fixture-local-time"><span class="label">${icon('clock')} Local time</span><time datetime="${fixtureDateTime(f)}">${esc(fixtureTime(f,true))}</time></div>
+        <a href="${esc(f.source)}" target="_blank" rel="noreferrer" class="source-link" aria-label="Open match source for ${esc(f.home)} versus ${esc(f.away)}">${icon('arrow')}</a>
       </article>`;
     }
 
     function resultRow(r) {
       const haalandTeam = r.team === 'city' ? 'Manchester City' : 'Norway';
       const won = (r.home===haalandTeam && r.homeScore>r.awayScore) || (r.away===haalandTeam && r.awayScore>r.homeScore);
+      const outcome = r.outcome || (r.homeScore === r.awayScore ? 'draw' : won ? 'win' : 'loss');
       return `<article class="result-row">
-        <div class="result-left"><span class="result-status ${won?'win':'loss'}">${won?'W':'L'}</span><div class="result-copy"><p class="eyebrow">${esc(localTime(r.kickoff,true))} · ${esc(r.competition)}</p><h3>${esc(shortTeam(r.home))} <span class="vs">vs</span> ${esc(shortTeam(r.away))}</h3></div></div>
-        <div class="result-right">${r.haalandGoals>0?`<span class="goal-pill">Haaland ×${r.haalandGoals}</span>`:''}<span class="scoreline">${r.homeScore}<span>–</span>${r.awayScore}</span><a href="${esc(r.source)}" target="_blank" rel="noreferrer" class="source-link" aria-label="Read the official report for ${esc(r.home)} versus ${esc(r.away)}">${icon('arrow')}</a></div>
+        <div class="result-left"><span class="result-status ${outcome}">${{win:'W',draw:'D',loss:'L'}[outcome]}</span><div class="result-copy"><p class="eyebrow">${esc(localTime(r.kickoff,true))} · ${esc(r.competition)}</p><h3>${esc(shortTeam(r.home))} <span class="vs">vs</span> ${esc(shortTeam(r.away))}</h3></div></div>
+        <div class="result-right">${r.haalandGoals>0?`<span class="goal-pill">Haaland ×${r.haalandGoals}</span>`:''}<span class="scoreline">${r.homeScore}<span>–</span>${r.awayScore}</span><a href="${esc(r.source)}" target="_blank" rel="noreferrer" class="source-link" aria-label="Open match result for ${esc(r.home)} versus ${esc(r.away)}">${icon('arrow')}</a></div>
       </article>`;
     }
 
     function filtered(items) { return currentFilter === 'all' ? items : items.filter(x => x.team === currentFilter); }
     function upcomingMatches(now) {
       return filtered(upcoming)
-        .filter(f => new Date(f.kickoff).getTime() > now)
+        .filter(f => f.timeConfirmed === false ? f.kickoff.slice(0,10) >= new Date(now).toISOString().slice(0,10) : new Date(f.kickoff).getTime() > now)
         .sort((a,b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
     }
 
     let countdownKickoff = null;
+    let countdownPending = false;
     let displayedUpcomingIds = '';
+    let matchClient = null;
+    let matchDataState = null;
     function render(now=Date.now()) {
-      const u = upcomingMatches(now), r = filtered(recent);
-      const next = u[0], latest = r[0] || recent[0];
+      const u = upcomingMatches(now), r = filtered(recent).slice().sort((a,b) => new Date(b.kickoff) - new Date(a.kickoff)).slice(0,6);
+      const next = u[0], latest = r[0];
       displayedUpcomingIds = JSON.stringify(u.map(f => f.id));
-      countdownKickoff = next ? next.kickoff : null;
-      const haalandTeam = latest.team === 'city' ? 'Manchester City' : 'Norway';
-      const opponent = latest.home === haalandTeam ? latest.away : latest.home;
+      countdownPending = Boolean(next && next.timeConfirmed === false);
+      countdownKickoff = next && !countdownPending ? next.kickoff : null;
+      const haalandTeam = latest && latest.team === 'city' ? 'Manchester City' : 'Norway';
+      const opponent = latest ? (latest.home === haalandTeam ? latest.away : latest.home) : null;
       $('#hero-competition').textContent = next ? next.competition : '';
       $('#next-match-title').innerHTML = next ? `${esc(shortTeam(next.home))}<span>vs</span>${esc(shortTeam(next.away))}` : 'No upcoming matches';
       $('#next-match-title').classList.toggle('empty', !next);
-      $('#hero-kickoff').textContent = next ? localTime(next.kickoff,false) : 'To be announced';
+      $('#hero-kickoff').textContent = next ? fixtureTime(next,false) : 'To be announced';
       $('#hero-venue').textContent = next ? next.venue : 'To be announced';
-      $('#latest-goals').textContent = `${latest.haalandGoals} ${latest.haalandGoals===1?'goal':'goals'}`;
-      $('#latest-opponent').textContent = `vs ${shortTeam(opponent)}`;
+      $('#latest-goals').textContent = !latest ? 'No recent result' : Number.isInteger(latest.haalandGoals) ? `${latest.haalandGoals} ${latest.haalandGoals===1?'goal':'goals'}` : `${latest.homeScore}–${latest.awayScore} FT`;
+      $('#latest-opponent').textContent = latest ? `vs ${shortTeam(opponent)}` : 'Awaiting results';
       $('#upcoming-count').textContent = u.length;
       $('#recent-count').textContent = r.length;
-      $('#upcoming-list').innerHTML = u.length ? u.map(fixtureRow).join('') : '<p class="empty-schedule">No upcoming matches in this snapshot. Check back for schedule updates.</p>';
-      $('#recent-list').innerHTML = r.map(resultRow).join('');
+      $('#upcoming-list').innerHTML = u.length ? u.map(fixtureRow).join('') : '<p class="empty-schedule">No upcoming matches available. The schedule refreshes automatically.</p>';
+      $('#recent-list').innerHTML = r.length ? r.map(resultRow).join('') : '<p class="empty-schedule">No final scores available yet.</p>';
       updateCountdown(now);
+      renderDataStatus();
     }
 
     function updateCountdown(now=Date.now()) {
       if (!countdownKickoff) {
-        $('#countdown').textContent = 'Waiting for schedule updates';
+        $('#countdown').textContent = countdownPending ? 'Kickoff time to be confirmed' : 'Waiting for schedule updates';
         return;
       }
       const distance = Math.max(0, new Date(countdownKickoff).getTime() - now);
@@ -344,6 +376,75 @@
       else updateCountdown(now);
     }
 
+    function setSyncIndicator(state, text, title) {
+      const indicator = $('#sync-indicator');
+      indicator.dataset.state = state;
+      indicator.title = title;
+      $('#sync-indicator-text').textContent = text;
+    }
+
+    function renderDataStatus() {
+      if (!matchDataState) return;
+      const keys = currentFilter === 'all' ? ['city','norway'] : [currentFilter];
+      const names = {city:'Man City',norway:'Norway'};
+      const failed = keys.filter(key => matchDataState.failedTeams.includes(key));
+      const sources = keys.map(key => matchDataState.teams[key]?.source || 'fallback');
+      const allLive = sources.every(source => source === 'live');
+      const anyCached = sources.some(source => source === 'cache');
+      const allCached = sources.every(source => source === 'cache');
+      const formatUpdated = iso => new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
+      const oldestUpdate = keys.map(key => matchDataState.teams[key].updatedAt).sort()[0];
+
+      if (matchDataState.loading) {
+        setSyncIndicator('loading', 'Updating', 'Fetching the latest fixtures and results from ESPN');
+      } else if (failed.length) {
+        if (allCached) setSyncIndicator('cached', 'Cached', 'Live refresh failed; showing cached match data');
+        else if (anyCached || sources.includes('live') || sources.includes('memory')) setSyncIndicator('mixed', 'Mixed', 'Some live requests failed; showing the best available data');
+        else setSyncIndicator('error', 'Fallback', 'Live refresh failed and no cached data was available');
+      } else if (allLive) {
+        setSyncIndicator('live', 'Live', 'Showing data fetched from ESPN');
+      } else {
+        setSyncIndicator('error', 'Fallback', 'Showing bundled fallback data while waiting for a successful refresh');
+      }
+
+      $('#data-label').textContent = matchDataState.loading ? 'Updating matches' : failed.length ? 'Update unavailable' : allLive ? 'Last updated' : 'Fallback data';
+      $('#data-updated').textContent = formatUpdated(oldestUpdate);
+      const details = keys.map(key => `${names[key]}: ${formatUpdated(matchDataState.teams[key].updatedAt)}`).join(' · ');
+
+      let message;
+      if (matchDataState.loading) {
+        message = 'Fetching the latest fixtures and results from ESPN. Current matches remain visible while the update loads.';
+      } else if (failed.length) {
+        const parts = failed.map(key => {
+          const source = matchDataState.teams[key]?.source;
+          if (source === 'cache') return `${names[key]} is using cached data because its live refresh failed.`;
+          if (source === 'memory') return `${names[key]} is keeping the last successful live data from this session.`;
+          return `${names[key]} is using the bundled fallback because its live refresh failed and no cache was available.`;
+        });
+        message = parts.join(' ');
+      } else if (allLive) {
+        message = 'Fixtures and results from ESPN. Refreshes on opening, on return, and every minute while visible.';
+      } else {
+        message = 'Bundled fallback matches are visible only until the first live refresh completes.';
+      }
+      $('#data-detail').textContent = `${message} ${details}. Open a match arrow to view its source.`;
+    }
+
+    function applyMatchData(state) {
+      matchDataState = state;
+      upcoming.splice(0,upcoming.length,...state.upcoming);
+      recent.splice(0,recent.length,...state.recent);
+      render();
+    }
+
+    function refreshFromSource() {
+      if (!matchClient) return Promise.resolve();
+      const pending = matchClient.refresh();
+      matchDataState = matchClient.getState();
+      renderDataStatus();
+      return pending.then(applyMatchData);
+    }
+
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => {
       currentFilter = btn.dataset.filter;
       document.querySelectorAll('.filter-btn').forEach(b => { const active=b===btn; b.classList.toggle('active',active); b.setAttribute('aria-pressed',String(active)); });
@@ -353,11 +454,33 @@
     try { $('#timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_',' '); } catch {}
     render();
     setInterval(refreshSchedule, 1000);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); });
-    addEventListener('pageshow', () => render());
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        render();
+        refreshFromSource();
+      }
+    });
+    addEventListener('pageshow', event => {
+      render();
+      if (event.persisted) refreshFromSource();
+    });
+
+    if (typeof MatchData !== 'undefined') {
+      matchClient = MatchData.createClient({fallback:{upcoming,recent,updatedAt:'2026-08-29T00:00:00Z'}});
+      applyMatchData(matchClient.getState());
+      // Always try the network on a fresh page entry. The client only reads the
+      // browser cache for a team after that team's live request fails.
+      refreshFromSource();
+      setInterval(() => { if (document.visibilityState === 'visible') refreshFromSource(); },60000);
+    } else {
+      setSyncIndicator('error', 'Fallback', 'The match update client failed to load');
+      $('#data-label').textContent = 'Fallback data';
+      $('#data-updated').textContent = '29 AUG 2026';
+      $('#data-detail').textContent = 'The update service could not load. Showing bundled fallback matches; reload the page to retry.';
+    }
 
     function updateOnlineStatus() { document.documentElement.classList.toggle('offline', !navigator.onLine); }
-    addEventListener('online', updateOnlineStatus); addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
+    addEventListener('online', () => { updateOnlineStatus(); refreshFromSource(); }); addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
